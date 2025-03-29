@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { createToken } from "@/lib/token";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { Loader, RefreshCw } from "lucide-react";
 import { useState } from "react";
@@ -45,16 +46,36 @@ const CreateToken = () => {
       setIsCreating(true);
 
       // Create the token
+      const mintAddress = await createToken(
+        connection,
+        publicKey,
+        signTransaction,
+        parseInt(decimals),
+      );
+
+      setTokenAddress(mintAddress);
+      toast("Token created!", {
+        description: `Your token ${tokenSymbol} has been created successfully.`,
+      });
     } catch (error) {
       console.error("Error creating token:", error);
       toast("Token creation failed", {
         description:
-          "There was an error creating your token. Please try again.",
+          error instanceof Error
+            ? error.message
+            : "There was an error creating your token. Please try again.",
         className: "destructive-toast",
       });
     } finally {
       setIsCreating(false);
     }
+  };
+
+  const resetForm = () => {
+    setTokenName("");
+    setTokenSymbol("");
+    setDecimals("9");
+    setTokenAddress("");
   };
 
   return (
@@ -115,7 +136,7 @@ const CreateToken = () => {
         {tokenAddress ? (
           <Button
             variant="outline"
-            // onClick={resetForm}
+            onClick={resetForm}
             className="flex items-center gap-2"
           >
             <RefreshCw className="h-4 w-4" />
