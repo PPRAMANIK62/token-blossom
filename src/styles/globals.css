@@ -143,6 +143,10 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  .destructive-toast {
+    @apply border-destructive bg-destructive;
+  }
 }
 
 .text-gradient {
