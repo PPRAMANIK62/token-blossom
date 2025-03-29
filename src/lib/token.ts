@@ -85,9 +85,9 @@ export const createToken = async (
 
     console.log(
       "Token created with address:",
-      mintKeypair.publicKey.toString(),
+      mintKeypair.publicKey.toBase58(),
     );
-    return mintKeypair.publicKey.toString();
+    return mintKeypair.publicKey.toBase58();
   } catch (error) {
     console.error("Error creating token:", error);
     throw error;
@@ -109,7 +109,7 @@ export const mintToken = async (
     const mintInfo = await getMint(connection, mintPubkey);
 
     // Verify that the payer is the mint authority
-    if (mintInfo.mintAuthority && !mintInfo.mintAuthority.equals(payer)) {
+    if (!mintInfo.mintAuthority?.equals(payer)) {
       throw new Error(
         "You are not the mint authority for this token. Only the mint authority can mint new tokens.",
       );
@@ -127,10 +127,10 @@ export const mintToken = async (
       TOKEN_PROGRAM_ID,
       ASSOCIATED_TOKEN_PROGRAM_ID,
     );
-    console.log(associatedTokenAddress);
 
     // Fetch recent blockhash
-    const { blockhash } = await connection.getLatestBlockhash();
+    const { blockhash, lastValidBlockHeight } =
+      await connection.getLatestBlockhash();
 
     // Create transaction
     const transaction = new Transaction({
@@ -139,13 +139,13 @@ export const mintToken = async (
     });
 
     // Check if token account exists
-    let tokenAccountExists = false;
+    let tokenAccountExists = true;
     try {
       await getAccount(connection, associatedTokenAddress);
-      tokenAccountExists = true;
     } catch (error) {
       // Token account doesn't exist, we'll create it
       console.log("Token account doesn't exist, creating one...", error);
+      tokenAccountExists = false;
     }
 
     // If the token account doesn't exist, add instruction to create it
@@ -176,10 +176,22 @@ export const mintToken = async (
 
     // Have the user sign and send the transaction
     console.log("Sending mint transaction...");
-    await signTransaction(transaction);
+    const signedTransaction = await signTransaction(transaction);
+
+    // Send the signed transaction to the network
+    const signature = await connection.sendRawTransaction(
+      signedTransaction.serialize(),
+    );
+
+    // Confirm transaction
+    await connection.confirmTransaction({
+      signature,
+      blockhash,
+      lastValidBlockHeight,
+    });
     console.log("Mint transaction confirmed!");
 
-    return associatedTokenAddress.toString();
+    return associatedTokenAddress.toBase58();
   } catch (error) {
     console.error("Error minting token:", error);
     // Provide more specific error messages

@@ -6,8 +6,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { TOKEN_PROGRAM_ID } from "@solana/spl-token";
+import { AccountLayout, TOKEN_PROGRAM_ID, getMint } from "@solana/spl-token";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { PublicKey } from "@solana/web3.js";
 import { Loader, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -16,6 +17,7 @@ interface TokenAccount {
   mint: string;
   address: string;
   amount: string;
+  formattedAmount: string;
 }
 
 const TokenBalances = () => {
@@ -28,28 +30,39 @@ const TokenBalances = () => {
   const fetchTokenAccounts = async () => {
     if (!publicKey) return;
 
-    try {
-      const accounts = await connection.getParsedTokenAccountsByOwner(
-        publicKey,
-        {
-          programId: TOKEN_PROGRAM_ID,
-        },
-      );
-      console.log(accounts);
+    setIsLoading(true);
 
-      const tokenAccounts = accounts.value
-        .map((account) => {
-          const parsedAccountInfo = account.account.data.parsed.info;
+    try {
+      const accounts = await connection.getTokenAccountsByOwner(publicKey, {
+        programId: TOKEN_PROGRAM_ID,
+      });
+
+      const tokenAccounts = await Promise.all(
+        accounts.value.map(async (account) => {
+          const accountData = AccountLayout.decode(account.account.data);
+          const mintAddress = new PublicKey(accountData.mint);
+          const mintInfo = await getMint(connection, mintAddress);
+          const decimals = mintInfo.decimals;
+
+          const amountRaw = BigInt(accountData.amount.toString());
+          const rawAmount = Number(amountRaw) / Math.pow(10, decimals);
+          const formattedAmount =
+            rawAmount % 1 === 0
+              ? rawAmount.toFixed(0)
+              : rawAmount.toFixed(decimals);
 
           return {
-            mint: parsedAccountInfo.mint,
+            mint: mintAddress.toString(),
             address: account.pubkey.toString(),
-            amount: parsedAccountInfo.tokenAmount.uiAmountString,
+            amount: accountData.amount.toString(),
+            formattedAmount,
           };
-        })
-        .filter((account) => Number(account.amount) > 0);
+        }),
+      );
 
-      setTokenAccounts(tokenAccounts);
+      setTokenAccounts(
+        tokenAccounts.filter((account) => Number(account.formattedAmount) > 0),
+      );
     } catch (error) {
       console.error("Error fetching token accounts:", error);
       toast("Error fetching tokens", {
@@ -122,7 +135,7 @@ const TokenBalances = () => {
                     Account: {formatAddress(account.address)}
                   </p>
                 </div>
-                <p className="font-bold">{account.amount}</p>
+                <p className="font-bold">{account.formattedAmount}</p>
               </div>
             ))}
           </div>

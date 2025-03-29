@@ -21,8 +21,8 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${geist.variable}`} suppressHydrationWarning>
-      <ClientProviders>
-        <body>
+      <body>
+        <ClientProviders>
           <ThemeProvider
             attribute="class"
             defaultTheme="dark"
@@ -31,8 +31,8 @@ export default function RootLayout({
           >
             {children}
           </ThemeProvider>
-        </body>
-      </ClientProviders>
+        </ClientProviders>
+      </body>
     </html>
   );
 }
