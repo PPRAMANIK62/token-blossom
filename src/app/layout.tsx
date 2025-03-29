@@ -1,6 +1,7 @@
 import "@/styles/globals.css";
 
 import ClientProviders from "@/providers/client-providers";
+import { ThemeProvider } from "@/providers/theme-provider";
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 
@@ -21,7 +22,16 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${geist.variable}`} suppressHydrationWarning>
       <ClientProviders>
-        <body>{children}</body>
+        <body>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+          </ThemeProvider>
+        </body>
       </ClientProviders>
     </html>
   );
