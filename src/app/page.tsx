@@ -1,6 +1,7 @@
 "use client";
 
 import CreateToken from "@/components/create-token";
+import MintToken from "@/components/mint-token";
 import TokenBalances from "@/components/token-balances";
 import WalletConnect from "@/components/wallet-connect";
 import WalletContextProvider from "@/providers/wallet-context-provider";
@@ -26,7 +27,7 @@ export default function HomePage() {
             </div>
             <div className="space-y-6">
               <CreateToken />
-              {/* <MintToken /> */}
+              <MintToken />
             </div>
           </main>
 
