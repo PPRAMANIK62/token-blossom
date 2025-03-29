@@ -1,5 +1,7 @@
 "use client";
 
+import CreateToken from "@/components/create-token";
+import TokenBalances from "@/components/token-balances";
 import WalletConnect from "@/components/wallet-connect";
 import WalletContextProvider from "@/providers/wallet-context-provider";
 
@@ -20,10 +22,10 @@ export default function HomePage() {
           <main className="mx-auto grid max-w-6xl grid-cols-1 gap-6 md:grid-cols-2">
             <div className="space-y-6">
               <WalletConnect />
-              {/* <TokenBalances /> */}
+              <TokenBalances />
             </div>
             <div className="space-y-6">
-              {/* <CreateToken /> */}
+              <CreateToken />
               {/* <MintToken /> */}
             </div>
           </main>
