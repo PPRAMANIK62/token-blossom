@@ -74,6 +74,8 @@ const MintToken = () => {
     try {
       setIsMinting(true);
       console.log("Starting token mint process...");
+      console.log("Mint address:", mintAddress);
+      console.log("User wallet:", publicKey.toString());
 
       // Mint token
       const tokenAccount = await mintToken(
@@ -97,15 +99,9 @@ const MintToken = () => {
         "There was an error minting your tokens. Please try again.";
 
       if (error instanceof Error) {
-        if (error.message.includes("TokenInvalidAccountOwner")) {
+        if (error.message.includes("mint authority")) {
           errorMessage =
-            "Token account owner is invalid. Make sure you own the token mint.";
-        } else if (error.message.includes("TokenInvalidMint")) {
-          errorMessage =
-            "Invalid token mint address. Please check the address and try again.";
-        } else if (error.message.includes("TokenAccountNotFound")) {
-          errorMessage =
-            "Token account not found. Please check the addresses and try again.";
+            "You are not the mint authority for this token. Only the creator of the token can mint additional tokens.";
         } else {
           errorMessage = error.message;
         }

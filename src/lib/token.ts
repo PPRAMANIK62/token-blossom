@@ -105,8 +105,15 @@ export const mintToken = async (
   try {
     const mintPubkey = new PublicKey(mintAddress);
 
-    // Get mint info to determine decimals
+    // Get mint info to determine decimals and mint authority
     const mintInfo = await getMint(connection, mintPubkey);
+
+    // Verify that the payer is the mint authority
+    if (mintInfo.mintAuthority && !mintInfo.mintAuthority.equals(payer)) {
+      throw new Error(
+        "You are not the mint authority for this token. Only the mint authority can mint new tokens.",
+      );
+    }
 
     // Calculate the amount with decimals
     const adjustedAmount = amount * Math.pow(10, mintInfo.decimals);
@@ -115,14 +122,21 @@ export const mintToken = async (
     const tokenReceiver = destination ?? payer;
     const associatedTokenAddress = await getAssociatedTokenAddress(
       mintPubkey,
-      payer,
+      tokenReceiver,
       false,
       TOKEN_PROGRAM_ID,
       ASSOCIATED_TOKEN_PROGRAM_ID,
     );
+    console.log(associatedTokenAddress);
+
+    // Fetch recent blockhash
+    const { blockhash } = await connection.getLatestBlockhash();
 
     // Create transaction
-    const transaction = new Transaction();
+    const transaction = new Transaction({
+      recentBlockhash: blockhash,
+      feePayer: payer,
+    });
 
     // Check if token account exists
     let tokenAccountExists = false;
@@ -168,6 +182,22 @@ export const mintToken = async (
     return associatedTokenAddress.toString();
   } catch (error) {
     console.error("Error minting token:", error);
+    // Provide more specific error messages
+    if (error instanceof Error) {
+      if (error.message.includes("TokenInvalidAccountOwner")) {
+        throw new Error(
+          "TokenInvalidAccountOwnerError: You don't have permission to mint this token. Make sure you are using the correct wallet that created this token.",
+        );
+      } else if (error.message.includes("TokenInvalidMint")) {
+        throw new Error(
+          "Invalid token mint address. Please check the address and try again.",
+        );
+      } else if (error.message.includes("TokenAccountNotFound")) {
+        throw new Error(
+          "Token account not found. There might be an issue with the associated token account.",
+        );
+      }
+    }
     throw error;
   }
 };
