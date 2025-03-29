@@ -1,5 +1,6 @@
 import "@/styles/globals.css";
 
+import ClientProviders from "@/providers/client-providers";
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 
@@ -18,8 +19,10 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${geist.variable}`}>
-      <body>{children}</body>
+    <html lang="en" className={`${geist.variable}`} suppressHydrationWarning>
+      <ClientProviders>
+        <body>{children}</body>
+      </ClientProviders>
     </html>
   );
 }
