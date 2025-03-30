@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createToken } from "@/lib/token";
+import { createToken } from "@/lib/tokens/create";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { Loader, RefreshCw } from "lucide-react";
 import { useState } from "react";
