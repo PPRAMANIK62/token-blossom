@@ -1,3 +1,5 @@
+"use client";
+
 // Import wallet adapter styles
 import "@solana/wallet-adapter-react-ui/styles.css";
 

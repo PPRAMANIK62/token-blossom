@@ -8,10 +8,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { AccountLayout, TOKEN_PROGRAM_ID, getMint } from "@solana/spl-token";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js";
-import { Loader, RefreshCw } from "lucide-react";
+import { Check, Copy, Loader, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -28,6 +34,7 @@ const TokenBalances = () => {
 
   const [tokenAccounts, setTokenAccounts] = useState<TokenAccount[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [copiedState, setCopiedState] = useState<Record<string, boolean>>({});
 
   const fetchTokenAccounts = async () => {
     if (!publicKey) return;
@@ -88,6 +95,29 @@ const TokenBalances = () => {
     return `${address.slice(0, 4)}...${address.slice(-4)}`;
   };
 
+  const copyToClipboard = (text: string, type: string) => {
+    navigator.clipboard.writeText(text).then(
+      () => {
+        setCopiedState({ ...copiedState, [text]: true });
+        toast("Copied!", {
+          description: `${type} address copied to clipboard`,
+        });
+
+        // Reset the copied state after 2 seconds
+        setTimeout(() => {
+          setCopiedState((prev) => ({ ...prev, [text]: false }));
+        }, 2000);
+      },
+      (err) => {
+        console.error("Could not copy text: ", err);
+        toast("Copy failed", {
+          description: "Failed to copy to clipboard",
+          className: "destructive-toast",
+        });
+      },
+    );
+  };
+
   return (
     <Card className="bg-card w-full shadow-md">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -129,13 +159,63 @@ const TokenBalances = () => {
                 key={index}
                 className="bg-secondary/30 flex items-center justify-between rounded-md border p-3"
               >
-                <div>
-                  <p className="text-sm font-medium">
-                    Mint: {formatAddress(account.mint)}
-                  </p>
-                  <p className="text-muted-foreground text-xs">
-                    Account: {formatAddress(account.address)}
-                  </p>
+                <div className="flex-1">
+                  <div className="flex items-center gap-1">
+                    <p className="text-sm font-medium">
+                      Mint: {formatAddress(account.mint)}
+                    </p>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 p-0"
+                            onClick={() =>
+                              copyToClipboard(account.mint, "Mint")
+                            }
+                          >
+                            {copiedState[account.mint] ? (
+                              <Check className="h-3 w-3" />
+                            ) : (
+                              <Copy className="h-3 w-3" />
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Copy mint address</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <p className="text-muted-foreground text-xs">
+                      Account: {formatAddress(account.address)}
+                    </p>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 p-0"
+                            onClick={() =>
+                              copyToClipboard(account.address, "Account")
+                            }
+                          >
+                            {copiedState[account.address] ? (
+                              <Check className="h-3 w-3" />
+                            ) : (
+                              <Copy className="h-3 w-3" />
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Copy account address</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                 </div>
                 <p className="font-bold">{account.formattedAmount}</p>
               </div>

@@ -130,7 +130,7 @@ const MintToken = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="mintAddress">Token Address</Label>
+          <Label htmlFor="mintAddress">Token Mint Address</Label>
           <Input
             id="mintAddress"
             placeholder="Enter token mint address"

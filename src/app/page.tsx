@@ -1,9 +1,7 @@
-"use client";
-
 import CreateToken from "@/components/create-token";
 import MintToken from "@/components/mint-token";
+import SendToken from "@/components/send-token";
 import TokenBalances from "@/components/token-balances";
-import TransactionHistory from "@/components/transaction-history";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import WalletConnect from "@/components/wallet-connect";
 import WalletContextProvider from "@/providers/wallet-context-provider";
@@ -26,7 +24,7 @@ export default function HomePage() {
             <div className="space-y-6">
               <WalletConnect />
               <TokenBalances />
-              <TransactionHistory />
+              {/* <TransactionHistory /> */}
             </div>
             <div className="space-y-6">
               <Tabs defaultValue="create">
@@ -41,7 +39,9 @@ export default function HomePage() {
                 <TabsContent value="mint">
                   <MintToken />
                 </TabsContent>
-                <TabsContent value="send">{/* <SendToken /> */}</TabsContent>
+                <TabsContent value="send">
+                  <SendToken />
+                </TabsContent>
               </Tabs>
             </div>
           </main>
