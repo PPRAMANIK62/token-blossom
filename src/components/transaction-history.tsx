@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  Table,
   TableBody,
   TableCaption,
   TableCell,
@@ -16,10 +17,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { Transaction as TokenTransaction } from "@/lib/tokens/transaction";
 import { getRecentTransactions } from "@/lib/tokens/transaction";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { Loader, RefreshCw, Table } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Loader, RefreshCw } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -27,35 +28,40 @@ const TransactionHistory = () => {
   const { connection } = useConnection();
   const { publicKey } = useWallet();
 
-  const [transactions, setTransactions] = useState<TokenTransaction[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
-  const fetchTransactions = async () => {
-    if (!publicKey) return;
+  const {
+    data: transactions = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["transactions", publicKey?.toString(), retryCount],
+    queryFn: async () => {
+      if (!publicKey) return [];
+      return getRecentTransactions(connection, publicKey);
+    },
+    enabled: !!publicKey,
+    staleTime: 60 * 1000, // 1 minute
+    retry: 2,
+    refetchOnWindowFocus: false,
+  });
 
-    try {
-      setIsLoading(true);
-      const txnHistory = await getRecentTransactions(connection, publicKey);
-      setTransactions(txnHistory);
-    } catch (error) {
+  useEffect(() => {
+    if (error) {
       console.error("Error fetching transactions:", error);
       toast("Error fetching transactions", {
         description:
-          "Could not fetch your transaction history. Please try again.",
+          "Could not fetch your transaction history. Please try again later.",
         className: "destructive-toast",
       });
-    } finally {
-      setIsLoading(false);
     }
-  };
+  }, [error]);
 
-  useEffect(() => {
-    if (publicKey) {
-      void fetchTransactions();
-    } else {
-      setTransactions([]);
-    }
-  }, [publicKey, connection]);
+  const handleRetry = () => {
+    setRetryCount((prev) => prev + 1);
+    void refetch();
+  };
 
   const formatAddress = (address: string) => {
     if (!address || address === "Unknown") return "Unknown";
@@ -92,7 +98,7 @@ const TransactionHistory = () => {
           <Button
             variant="outline"
             size="icon"
-            onClick={fetchTransactions}
+            onClick={handleRetry}
             disabled={isLoading}
             className="ml-auto h-8 w-8"
           >

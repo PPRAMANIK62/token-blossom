@@ -1,7 +1,10 @@
+"use client";
+
 import CreateToken from "@/components/create-token";
 import MintToken from "@/components/mint-token";
 import SendToken from "@/components/send-token";
 import TokenBalances from "@/components/token-balances";
+import TransactionHistory from "@/components/transaction-history";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import WalletConnect from "@/components/wallet-connect";
 import WalletContextProvider from "@/providers/wallet-context-provider";
@@ -20,11 +23,11 @@ export default function HomePage() {
             </p>
           </header>
 
-          <main className="mx-auto grid max-w-6xl grid-cols-1 gap-6 lg:grid-cols-2">
+          <main className="mx-auto grid max-w-6xl grid-cols-1 gap-6 lg:grid-cols-2" suppressHydrationWarning>
             <div className="space-y-6">
               <WalletConnect />
               <TokenBalances />
-              {/* <TransactionHistory /> */}
+              <TransactionHistory />
             </div>
             <div className="space-y-6">
               <Tabs defaultValue="create">
